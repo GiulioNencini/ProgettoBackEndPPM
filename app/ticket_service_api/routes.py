@@ -136,3 +136,87 @@ def postScheduling(showId):
     db.session.commit()
 
     return jsonify({'msg': 'Show scheduled successfully'}), 201
+
+
+@bp.route('/reservation_create/<int:schedulingId>', methods = ['POST'])
+@jwt_required()
+def postReservation(schedulingId):
+    user_id = get_jwt_identity()
+    user: User = User.query.filter_by(id=user_id).first()
+
+    if not user:
+        return jsonify({'msg': 'Login required'}), 403
+    
+    scheduling: Scheduling = Scheduling.query.filter_by(id = schedulingId).first()
+    if not scheduling:
+        return jsonify({'msg' : 'Scheduling not found for reservation'}), 404
+    
+    data = request.get_json()
+    res_seatNumber = data.get('seatNumber')
+
+    if res_seatNumber < 1 or res_seatNumber > scheduling.totalSeats:
+        return jsonify({'msg': f'Invalid seat number. Choose between 1 and {scheduling.totalSeats}'}), 400
+
+    existing_reservation = Reservation.query.filter_by(
+        schedulingId=schedulingId, 
+        seatNumber=res_seatNumber
+    ).first()
+    
+    if existing_reservation:
+        return jsonify({'msg': f'Seat {res_seatNumber} is already taken'}), 409
+
+    reservation = Reservation(
+        userId = user_id,
+        schedulingId = schedulingId,
+        seatNumber = res_seatNumber
+    )
+
+    db.session.add(reservation)
+    db.session.commit()
+
+    return jsonify({'msg' : 'Reservation successfully completed'}), 200
+
+
+@bp.route('/reservation_delete/<int:schedulingId>/<int:seatNumber>', methods = ['DELETE'])
+@jwt_required()
+def deleteReservation(schedulingId, seatNumber):
+    user_id = get_jwt_identity()
+    user: User = User.query.filter_by(id=user_id).first()
+
+    if not user:
+        return jsonify({'msg': 'Login required'}), 403
+    
+    reservation: Reservation = Reservation.query.filter_by(userId = user_id, schedulingId = schedulingId, seatNumber = seatNumber).first()
+
+    if not reservation:
+        return jsonify({'msg' : 'Reservation not found for delete'}), 403
+    
+    db.session.delete(reservation)
+    db.session.commit()
+
+    return jsonify({'msg' : 'Reservation successfully deleted'}), 200
+
+#Da finire
+@bp.route('/reservation_get', methods = ['GET'])
+@jwt_required()
+def getReservation():
+    user_id = get_jwt_identity()
+    user: User = User.query.filter_by(id=user_id).first()
+
+    if not user:
+        return jsonify({'msg': 'Login required'}), 403
+    
+    user_reservation : Reservation = Reservation.query.filter_by(userId = user_id).all()
+
+    if not user_reservation:
+        return jsonify({'msg' : f'No reservation found for userId:{user_id}'})
+    
+    for usRes in user_reservation:
+        show = sch
+        reservation_data = {
+            "id_reservation" : usRes.id,
+            "date": sched.date.strftime('%Y-%m-%d'),
+            "time": sched.time.strftime('%H:%M'),
+            "show_title": show.title,
+        }
+
