@@ -75,8 +75,8 @@ class EventsView(MethodView):
 
         return jsonify(to_dict(result)), 200
 
-    @jwt_required
-    def postShow(self):#azioni dell'admin
+    @jwt_required()
+    def post(self):#azioni dell'admin
         user_id = get_jwt_identity()
         user: User = User.query.filter_by(id=user_id).first()
 
@@ -101,37 +101,38 @@ class EventsView(MethodView):
         db.session.add(new_show)
         db.session.commit()
 
-        return jsonify({'msg': 'Forecast added successfully'}), 201
-
-    @jwt_required
-    def postScheduling(self, idShow):
-        user_id = get_jwt_identity()
-        user: User = User.query.filter_by(id=user_id).first()
-
-        if not user.is_admin:
-            return jsonify({'msg': 'Admin reserved area'}), 403
-
-        data = request.get_json()
-
-        show: Showing = Showing.query.filter_by(id = idShow)
-        if not show:
-            return jsonify({'msg' : 'Show not found for scheduling'})
-
-        sch_date = datetime.strftime(data.get('date') , '%Y-%m-%d')
-        sch_time = datetime.strftime(data.get('time') , '%H-%M').time()
-        sch_totalSeats = data.get('totalSeats')
-
-        scheduling = Scheduling(
-            showId = show.id,
-            date = sch_date,
-            time = sch_time,
-            totalSeats = sch_totalSeats
-        )
-
-        db.session.add(scheduling)
-        db.session.commit()
-
-        return jsonify({'msg': 'Show scheduled successfully'}), 201
+        return jsonify({'msg': 'Show added successfully'}), 201
 
 
+bp.add_url_rule('/events', view_func=EventsView.as_view('events'))
 
+@bp.route('/scheduling/<int:showId>', methods = ['POST']) 
+@jwt_required()
+def postScheduling(showId):
+    user_id = get_jwt_identity()
+    user: User = User.query.filter_by(id=user_id).first()
+
+    if not user.is_admin:
+        return jsonify({'msg': 'Admin reserved area'}), 403
+
+    data = request.get_json()
+
+    show: Showing = Showing.query.filter_by(id = showId).first()
+    if not show:
+        return jsonify({'msg' : 'Show not found for scheduling'})
+
+    sch_date = datetime.strptime(data.get('date') , '%Y-%m-%d')
+    sch_time = datetime.strptime(data.get('time') , '%H:%M').time()
+    sch_totalSeats = data.get('totalSeats')
+
+    scheduling = Scheduling(
+        showId = show.id,
+        date = sch_date,
+        time = sch_time,
+        totalSeats = sch_totalSeats
+    )
+
+    db.session.add(scheduling)
+    db.session.commit()
+
+    return jsonify({'msg': 'Show scheduled successfully'}), 201

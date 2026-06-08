@@ -7,13 +7,15 @@ bp = Blueprint('auth', __name__, url_prefix = '/auth')
 
 @bp.route('/register', methods = ['POST'])
 def register():
-    username = request.get_json().get('username')
-    password = request.get_json().get('password')
+    data = request.get_json()
+
+    username = data.get('username')
+    password = data.get('password')
 
     if not username or not password:
         return jsonify({'ERROR': 'Missing username or password'}), 400
 
-    if not User.query.filter_by(username=username).first() is None:
+    if User.query.filter_by(username=username).first():
         return jsonify({'ERROR': 'User already exist'}), 409
     
     new_user = User(username = username)
@@ -24,8 +26,10 @@ def register():
 
 @bp.route('/login', methods = ['POST'])
 def login():
-    username = request.get_json().get('username')
-    password = request.get_json().get('password')
+    data = request.get_json()
+
+    username = data.get('username')
+    password = data.get('password')
 
     if not username or not password:
         return jsonify({'ERROR': 'Missing username or password'}), 400
