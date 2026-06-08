@@ -4,6 +4,6 @@ from sqlalchemy import ForeignKey
 
 class Reservation(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
-    idUser: Mapped[int] = mapped_column(ForeignKey('user.id'), nullable=False)
-    idScheduling: Mapped[int] = mapped_column(ForeignKey('scheduling.id'), nullable=False)
+    userId: Mapped[int] = mapped_column(ForeignKey('user.id'), nullable=False)
+    schedulingId: Mapped[int] = mapped_column(ForeignKey('scheduling.id'), nullable=False)
     seatNumber: Mapped[int] = mapped_column(nullable=False)
