@@ -6,7 +6,6 @@ class User(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(nullable=False, unique=True)
     password_hash: Mapped[str] = mapped_column(nullable=False)
-    apikey: Mapped[str] = mapped_column(default = None, unique=True, nullable=True)
     is_admin: Mapped[bool] = mapped_column(default=False)
 
     reservations = relationship('Reservation', backref='user')
