@@ -1,7 +1,7 @@
 from sqlalchemy import ForeignKey
 from datetime import date as dt_date, time as dt_time
 
-from app.db import db
+from db import db
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 
 class Scheduling(db.Model):

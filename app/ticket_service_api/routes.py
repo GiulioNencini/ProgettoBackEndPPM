@@ -5,7 +5,7 @@ from models.user import User
 from models.reservation import Reservation
 from models.scheduling import Scheduling
 from models.showing import Showing
-from app.db import db
+from db import db
 from datetime import datetime
 
 

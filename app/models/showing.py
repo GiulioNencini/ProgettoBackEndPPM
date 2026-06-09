@@ -1,4 +1,4 @@
-from app.db import db
+from db import db
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 
 class Showing(db.Model):

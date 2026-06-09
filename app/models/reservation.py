@@ -1,5 +1,5 @@
-from app.db import db
-from sqlalchemy.orm import mapped_column, Mapped, relationship
+from db import db
+from sqlalchemy.orm import mapped_column, Mapped
 from sqlalchemy import ForeignKey
 
 class Reservation(db.Model):
