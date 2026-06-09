@@ -1,11 +1,11 @@
 from flask import Blueprint, request, jsonify
-from db import db
+from app.db import db
 from models.user import User
 from flask_jwt_extended import create_access_token
 
-bp = Blueprint('auth', __name__, url_prefix = '/auth')
+auth_bp = Blueprint('auth', __name__, url_prefix = '/auth')
 
-@bp.route('/register', methods = ['POST'])
+@auth_bp.route('/register', methods = ['POST'])
 def register():
     data = request.get_json()
 
@@ -24,7 +24,7 @@ def register():
     db.session.commit()
     return jsonify({'SUCCESS':'User registered successfully'}), 201
 
-@bp.route('/login', methods = ['POST'])
+@auth_bp.route('/login', methods = ['POST'])
 def login():
     data = request.get_json()
 

@@ -1,4 +1,4 @@
-from db import db
+from app.db import db
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 from sqlalchemy import ForeignKey
 

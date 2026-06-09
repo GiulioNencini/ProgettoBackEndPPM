@@ -1,7 +1,7 @@
 from sqlalchemy import ForeignKey
 from datetime import date as dt_date, time as dt_time
 
-from db import db
+from app.db import db
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 
 class Scheduling(db.Model):
@@ -11,4 +11,4 @@ class Scheduling(db.Model):
     time: Mapped[dt_time] = mapped_column(nullable=False)
     totalSeats: Mapped[int] = mapped_column(nullable=False)
 
-reservations = relationship('Reservation', backref='scheduling')
+    reservations = relationship('Reservation', backref='scheduling')

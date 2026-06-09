@@ -5,12 +5,12 @@ from models.user import User
 from models.reservation import Reservation
 from models.scheduling import Scheduling
 from models.showing import Showing
-from db import db, to_dict
-from datetime import datetime, date
+from app.db import db
+from datetime import datetime
 
 
 
-bp = Blueprint('events', __name__, url_prefix='/api')
+ticket_service_bp = Blueprint('events', __name__, url_prefix='/api')
 
 class EventsView(MethodView):
     def get(self):
@@ -30,18 +30,12 @@ class EventsView(MethodView):
             user_id = None #In questo caso abbiamo a che fare con un anonimo
 
         #Tutti gli eventi post showDate_str
-        showing_scheduling: Scheduling = Scheduling.query.filter_by(Scheduling.date < showDate).all()
+        showing_scheduling: Scheduling = Scheduling.query.filter(Scheduling.date > showDate).all()
 
         if showing_scheduling is None:
             return jsonify({'msg' : f'No results after {showDate_str}'}), 404
         
-        
-        # maggiori informazioni sullo spettacolo
-        showing: Showing = Showing.query.filter_by(id = showing_scheduling.idShow).all()
-        if showing is None: #anche se in teoria non è possibile per integrità referenziale
-            return jsonify({'msg' : 'No showing found'}), 404
-        
-        result = []
+        results = []
         for sched in showing_scheduling:
             # Sfruttiamo la relazione per prendere i dati dello spettacolo associato
             show = sched.showing  
@@ -71,9 +65,9 @@ class EventsView(MethodView):
                 event_data["seats_remaining"] = posti_rimanenti
                 event_data["total_seats"] = sched.totalSeats
 
-            result.append(event_data)
+            results.append(event_data)
 
-        return jsonify(to_dict(result)), 200
+        return jsonify(results), 200
 
     @jwt_required()
     def post(self):#azioni dell'admin
@@ -104,9 +98,9 @@ class EventsView(MethodView):
         return jsonify({'msg': 'Show added successfully'}), 201
 
 
-bp.add_url_rule('/events', view_func=EventsView.as_view('events'))
+ticket_service_bp.add_url_rule('/events', view_func=EventsView.as_view('events'))
 
-@bp.route('/scheduling/<int:showId>', methods = ['POST']) 
+@ticket_service_bp.route('/scheduling/<int:showId>', methods = ['POST']) 
 @jwt_required()
 def postScheduling(showId):
     user_id = get_jwt_identity()
@@ -119,7 +113,7 @@ def postScheduling(showId):
 
     show: Showing = Showing.query.filter_by(id = showId).first()
     if not show:
-        return jsonify({'msg' : 'Show not found for scheduling'})
+        return jsonify({'msg' : 'Show not found for scheduling'}), 404
 
     sch_date = datetime.strptime(data.get('date') , '%Y-%m-%d')
     sch_time = datetime.strptime(data.get('time') , '%H:%M').time()
@@ -138,7 +132,7 @@ def postScheduling(showId):
     return jsonify({'msg': 'Show scheduled successfully'}), 201
 
 
-@bp.route('/reservation_create/<int:schedulingId>', methods = ['POST'])
+@ticket_service_bp.route('/reservation_create/<int:schedulingId>', methods = ['POST'])
 @jwt_required()
 def postReservation(schedulingId):
     user_id = get_jwt_identity()
@@ -174,10 +168,10 @@ def postReservation(schedulingId):
     db.session.add(reservation)
     db.session.commit()
 
-    return jsonify({'msg' : 'Reservation successfully completed'}), 200
+    return jsonify({'msg' : 'Reservation successfully completed'}), 201
 
 
-@bp.route('/reservation_delete/<int:schedulingId>/<int:seatNumber>', methods = ['DELETE'])
+@ticket_service_bp.route('/reservation_delete/<int:schedulingId>/<int:seatNumber>', methods = ['DELETE'])
 @jwt_required()
 def deleteReservation(schedulingId, seatNumber):
     user_id = get_jwt_identity()
@@ -189,15 +183,15 @@ def deleteReservation(schedulingId, seatNumber):
     reservation: Reservation = Reservation.query.filter_by(userId = user_id, schedulingId = schedulingId, seatNumber = seatNumber).first()
 
     if not reservation:
-        return jsonify({'msg' : 'Reservation not found for delete'}), 403
+        return jsonify({'msg' : 'Reservation not found for delete'}), 404
     
     db.session.delete(reservation)
     db.session.commit()
 
     return jsonify({'msg' : 'Reservation successfully deleted'}), 200
 
-#Da finire
-@bp.route('/reservation_get', methods = ['GET'])
+#È la get di tutte le prenotazioni effettuate da un preciso utente, vengono ritornate le informazioni strettamente necessarie all'utente
+@ticket_service_bp.route('/reservation_get', methods = ['GET'])
 @jwt_required()
 def getReservation():
     user_id = get_jwt_identity()
@@ -209,14 +203,87 @@ def getReservation():
     user_reservation : Reservation = Reservation.query.filter_by(userId = user_id).all()
 
     if not user_reservation:
-        return jsonify({'msg' : f'No reservation found for userId:{user_id}'})
+        return jsonify({'msg' : f'No reservation found for userId:{user_id}'}), 404
     
+    results = []
+
     for usRes in user_reservation:
-        show = sch
+        sched = usRes.scheduling
+        show = sched.showing
+
         reservation_data = {
             "id_reservation" : usRes.id,
-            "date": sched.date.strftime('%Y-%m-%d'),
-            "time": sched.time.strftime('%H:%M'),
-            "show_title": show.title,
+            "show_title" : show.title,
+            "date" : sched.date.strftime('%Y-%m-%d'),
+            "time" : sched.time.strftime('%H:%M'),
+            "seatNumber" : usRes.seatNumber
         }
 
+        results.append(reservation_data)
+    
+    return jsonify(results), 200
+
+@ticket_service_bp.route('/reservation_update/<int:reservationId>', methods = ['PATCH']) # ho optato per il metodo patch poiché la modifica dell'oggetto Reservation è solo parziale
+@jwt_required()
+def updateReservation(reservationId):
+    user_id = get_jwt_identity()
+    user: User = User.query.filter_by(id=user_id).first()
+
+    if not user:
+        return jsonify({'msg': 'Login required'}), 403
+    
+    reservation : Reservation = Reservation.query.filter_by(id = reservationId).first()
+    if not reservation:
+        return jsonify({'msg' : 'Reservation not found'}), 404
+    if not reservation.userId == user_id:
+        return jsonify({'msg' : 'userId and reservationId are not compatible'}), 403
+    
+    actualScheduling : Scheduling = Scheduling.query.filter_by(id = reservation.schedulingId).first()
+    
+    data = request.get_json()
+    new_sched_id = data.get('schedulingId') # per il cambio della data -> si tratta letteralmente di modificare la schedulazione stessa
+    new_seat_number = data.get('seatNumber') # se si vuol cambiare solo il posto non importa cambiare la schedulazione stessa
+
+    if new_sched_id is not None:
+        new_scheduling :Scheduling = Scheduling.query.filter_by(id = new_sched_id).first()
+        if not new_scheduling:
+            return jsonify({'msg' : 'Scheduling not found for update'}), 404
+        
+        # Controlliamo se il posto attuale dell'utente è libero nella NUOVA data
+        seat_to_assign = reservation.seatNumber
+        seat_taken = Reservation.query.filter_by(schedulingId=new_sched_id, seatNumber=seat_to_assign).first()
+    
+        # Se il posto è già occupato nella nuova data, cerchiamo il primo disponibile
+        if seat_taken:
+            assigned = False
+            for seat in range(1, new_scheduling.totalSeats + 1):
+                # Controlla se questo specifico numero di sedia è libero la nuova sera
+                check_seat = Reservation.query.filter_by(schedulingId=new_sched_id, seatNumber=seat).first()
+                if not check_seat:
+                    seat_to_assign = seat
+                    assigned = True
+                    break
+            
+            if not assigned:
+                return jsonify({'msg': 'Target show is completely sold out, cannot move reservation'}), 400
+
+        reservation.schedulingId = new_sched_id
+        reservation.seatNumber = seat_to_assign
+        
+        db.session.commit()
+        return jsonify({'msg' : 'The date reserved has been changed successfully'}), 200
+    
+    if new_seat_number is not None and new_seat_number != reservation.seatNumber:
+        if new_seat_number < 1 or new_seat_number > actualScheduling.totalSeats:
+            return jsonify({'msg' : 'Invalid seat number'}), 400
+        
+        reservationBySeatNumber: Reservation = Reservation.query.filter_by(schedulingId = reservation.schedulingId, seatNumber = new_seat_number).filter(~Reservation.id.in_([reservationId])).first()
+
+        if reservationBySeatNumber:
+            return jsonify({'msg' : f'The seat number {new_seat_number} is already taken'}), 403
+        
+        reservation.seatNumber = new_seat_number
+        db.session.commit()
+        return jsonify({'msg' : 'The seat number has been changed successfully'}), 200
+
+    return jsonify({'msg': 'No changes detected'}), 200

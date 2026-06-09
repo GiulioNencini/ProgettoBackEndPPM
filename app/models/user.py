@@ -1,4 +1,4 @@
-from db import db
+from app.db import db
 from sqlalchemy.orm import mapped_column, Mapped, relationship
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -18,7 +18,7 @@ class User(db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-def create_admin():
+def create_admin():# c'è un solo admin
     if not User.query.filter_by(is_admin=True).first():
         admin = User(username='admin', is_admin=True)
         admin.set_password('admin')
