@@ -9,7 +9,7 @@ import os
 
 app = Flask(__name__)
 CORS(app)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret')
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secretKey')
 app.config['JWT_SECRET_KEY'] = os.environ.get('JWT_SECRET_KEY', 'dev-jwt-secret')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///database.db')
 
@@ -19,8 +19,8 @@ db.init_app(app)
 app.register_blueprint(auth_bp)
 app.register_blueprint(ticket_service_bp)
 
-db.create_all()
 with app.app_context():
+    db.create_all()
     create_admin()
 
 """
