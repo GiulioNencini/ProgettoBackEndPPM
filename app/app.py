@@ -3,8 +3,8 @@ from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from db import db
 from models.user import create_admin
-from app.auth.a_routes import auth_bp
-from app.ticket_service_api.ts_routes import ticket_service_bp
+from auth.a_routes import auth_bp
+from ticket_service_api.ts_routes import ticket_service_bp
 import os
 
 app = Flask(__name__)
