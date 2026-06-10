@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Register your API account for Ticket Reservation</title>
+    </head>
+    <body>
+    <h1>Register</h1>
+    <form id="register-form">
+        <label>Username
+            <input type="text" name="username">
+        </label><br>
+        <label>Password
+            <input type="password" name="password">
+        </label><br>
+        <button type="submit">Register</button>
+    </form>
+    <div id="message"></div>
+    <p>Already have an account or you just created it?<a href="login.html"> Login</a></p>
+
+    <script src="api_base_url.js"></script>
+    <script>
+        const token = localStorage.getItem("access_token");
+        const msgDiv = document.getElementById("message");
+
+        window.addEventListener("DOMContentLoaded", async () => {
+            if (token) {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/userinfo`, {
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        if (data.is_admin) {
+                            window.location.href = "adminDashboard.html";
+                        } else {
+                            window.location.href = "userDashboard.html";
+                        }
+                    } else {
+                        localStorage.removeItem("access_token");
+                    }
+                } catch (error) {
+                    msgDiv.textContent = "ERROR: Network error or server not available";
+                }
+            }
+        });
+
+        document.getElementById("register-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const form = e.target;
+            const username = form.username.value.trim();
+            const password = form.password.value.trim();
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/register`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({username, password})
+                });
+
+                const data = await response.json();
+                if (!response.ok) {
+                    msgDiv.textContent = `Error: ${data.msg || data.error || "No more details"}`;
+                    msgDiv.style.color = "red";
+                    form.password.value = "";
+                } else {
+                    msgDiv.textContent = "User registered successfully! Redirecting to login page in a few seconds...";
+                    msgDiv.style.color = "green";
+
+                    setTimeout(() => {
+                        window.location.href = "login.html"
+                    }, 3000)
+                }
+            } catch (err) {
+                msgDiv.textContent = "ERROR: Network error or server not available";
+                console.error(err);
+            }
+        })
+    </script>
+    </body>
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Ticket Reservation for Theatre</title>
+    </head>
+    <body>
+    <h2>Next Events</h2>
+    <pre id="result"></pre>
+    <p id="warning-msg" style="color:red"></p>
+    <p>
+        Please login your account to reserve a ticket
+        <a href="login.html">Login</a>
+    </p>
+    <p>
+        You haven't an account? Create it now!
+        <a href="register.html">Register</a>
+    </p>
+
+    <script src="api_base_url.js"></script>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const msg = params.get("msg");
+
+        if (msg === "invalid_token") {
+            document.getElementById("warning-msg").textContent = "Invalid token. Please login again";
+        }
+
+        // recupero eventi futuri per visualizzazione a schermo, non è necessario login per la sola visualizzazione
+        window.addEventListener("DOMContentLoaded", async () => {
+            const eventsContainer = document.getElementById("events-container");
+
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0'); // Gennaio è 0
+            const dd = String(today.getDate()).padStart(2, '0');
+            const currentDateString = `${yyyy}-${mm}-${dd}`;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/events?date=${currentDateString}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    eventsContainer.innerHTML = `<p>No upcoming events found starting from today (${currentDateString}).</p>`;
+                    return;
+                }
+                eventsContainer.innerHTML = "";
+
+                data.forEach(event => {
+                    const eventDiv = document.createElement("div");
+                    eventDiv.className = "event-card";
+
+                    eventDiv.innerHTML = `
+                        <h3>${event.title}</h3>
+                        <p><strong>Description:</strong> ${event.description || "No description available"}</p>
+                        <p><strong>Price:</strong> €${event.price}</p>
+                        <p><strong>Date:</strong> ${event.date} at ${event.time}</p>
+                        <p><em>Login to check seat availability and book your ticket!</em></p>
+                    `;
+
+                    eventsContainer.appendChild(eventDiv);
+                });
+
+            } catch (error) {
+                console.error("Error fetching events:", error);
+                eventsContainer.innerHTML = "<p style='color:red;'>Error: Network error or server not available.</p>";
+            }
+        });
+    </script>
+    </body>
+</html>

@@ -5,7 +5,7 @@ from models.user import User
 from models.reservation import Reservation
 from models.scheduling import Scheduling
 from models.showing import Showing
-from db import db
+from db import db, to_dict
 from datetime import datetime
 
 
@@ -192,7 +192,7 @@ class ReservationView(MethodView):
         return jsonify({'msg': 'Reservation successfully completed'}), 201
 
     # Cancellazione di una prenotazione
-    def delete(self, scheduling_id, seat_number):
+    def delete(self, reservation_id):
         user_id = get_jwt_identity()
         user: User = User.query.filter_by(id=user_id).first()
         if not user:
@@ -200,8 +200,7 @@ class ReservationView(MethodView):
         
         reservation : Reservation = Reservation.query.filter_by(
             userId=user_id, 
-            schedulingId=scheduling_id, 
-            seatNumber=seat_number
+            id = reservation_id, 
         ).first()
         if not reservation:
             return jsonify({'msg': 'Reservation not found for delete'}), 404
@@ -274,6 +273,14 @@ class ReservationView(MethodView):
 reservation_view = ReservationView.as_view('reservation_api')
 
 ticket_service_bp.add_url_rule('/reservation', view_func=reservation_view, methods=['GET'])
-ticket_service_bp.add_url_rule('/reservation/<int:schedulingId>', view_func=reservation_view, methods=['POST'])
-ticket_service_bp.add_url_rule('/reservation/<int:schedulingId>/<int:seatNumber>', view_func=reservation_view, methods=['DELETE'])
-ticket_service_bp.add_url_rule('/reservation/<int:reservationId>', view_func=reservation_view, methods=['PATCH'])
+ticket_service_bp.add_url_rule('/reservation/<int:scheduling_id>', view_func=reservation_view, methods=['POST'])
+ticket_service_bp.add_url_rule('/reservation/<int:reservation_id>', view_func=reservation_view, methods=['DELETE'])
+ticket_service_bp.add_url_rule('/reservation/<int:reservation_id>', view_func=reservation_view, methods=['PATCH'])
+
+@ticket_service_bp.route('/userinfo')
+@jwt_required()
+def userInfo():
+    user_id = get_jwt_identity()
+    user = User.query.filter_by(id=user_id).first()
+
+    return jsonify(to_dict(user)), 200

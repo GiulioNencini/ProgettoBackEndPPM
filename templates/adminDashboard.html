@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang = "en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Admin Dashboard</title>
+    </head>
+    <body>
+        <h2>Add Event</h2>
+        <form id = "event-form">
+            <label>Title
+                <input type = "text" name = "title" required>
+            </label><br>
+            <label>Description
+                <input type = "text" name = "description" required>
+            </label><br>
+            <label>Price
+                <input type = "number" name = "price" required>
+            </label><br>
+            <button type = "submit">Add Event</button>
+        </form>
+
+        <h2>Add scheduling for event</h2>
+        <form id = "scheduling-form">
+            <label>Enter the id of the show to schedule
+                <input type = "number" name = "showId" required>
+            </label><br>
+            <label>Date
+                <input type = "date" name = "date" required>
+            </label><br>
+            <label>Time
+                <input type = "time" name = "time" required>
+            </label><br>
+            <label>Establish the max number of seats
+                <input type = "number" name = "totalSeats" required>
+            </label><br>
+            <button type="submit">Add scheduling</button>
+        </form><br>
+
+        <button onclick="logout()">Logout</button>
+        <div id="message"></div>
+
+        <script src = "api_base_url.js"></script>
+        <script>
+
+            function logout(){
+                localStorage.removeItem("access_token");
+                window.location.href = "index.html";
+            }
+
+            const token = localStorage.getItem("access_token");
+            const msgDiv = document.getElementById("message");
+
+            window.addEventListener("DOMContentLoaded", async () => {
+                if (token) {
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/api/userinfo`, {
+                            headers: {
+                                Authorization: `Bearer ${token}`
+                            }
+                        });
+
+                        const data = await response.json();
+
+                        if (!response.ok) {
+                            localStorage.removeItem("access_token");
+                            msgDiv.textContent = data.msg || data.error || "No more details"
+                            const br = document.createElement("br");
+                            msgDiv.appendChild(br)
+                            const span = document.createElement("span");
+                            span.textContent = "Please login again  ";
+                            msgDiv.appendChild(span);
+                            const a = document.createElement("a");
+                            a.href = "login.html";
+                            a.textContent = "Login";
+                            msgDiv.appendChild(a);
+                        }else if (!data.is_admin){
+                            alert("Access denied: Admin area only!");
+                            window.location.href = "user_dashboard.html";
+                        }
+                    } catch (error) {
+                        msgDiv.textContent = "ERROR: Network error or server not available";
+                    }
+                }
+                else{
+                    window.location.href = "login.html";
+                    return;
+                }
+            });
+
+            document.getElementById("event-form").addEventListener("submit", async (e) => {
+                e.preventDefault();
+
+                const form = e.target
+                const title = form.title.value.trim();
+                const descrption = form.description.value.trim();
+                const price = form.price.value;
+                //const price = parseFloat(form.price.value);
+
+                try{
+                    const response = await fetch(`${API_BASE_URL}/api/events`, {
+                        method: "POST",
+                        headers:{
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${token}`
+                        },
+                        body: JSON.stringify({title, description, price})
+                    });
+
+                    const data = await response.json();
+                    msgDiv.textContent = data.msg || data.error || "No more details";
+
+                    if(response.ok) form.reset();
+                }catch(err){
+                    msgDiv.textContent = "ERROR: Network error or server not available";
+                }
+            });
+
+            document.getElementById("scheduling-form").addEventListener("submit", async(e) => {
+                e.preventDefault();
+                const form = e.target;
+                const showId = form.showId.value;
+                const date = form.date.value;
+                const time = form.time.value;
+                const totalSeats = form.totalSeats.value;
+                //const totalSeats = parseInt(form.totalSeats.value);
+
+                try{
+                    const response = await fetch(`${API_BASE_URL}/api/scheduling/${showId}`, {
+                        method: "POST",
+                        headers:{
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${token}`
+                        },
+                        body: JSON.stringify({showId, date, time, totalSeats})
+                    });
+
+                    const data = await response.json();
+                    msgDiv.textContent = data.msg || data.error || "No more details";
+
+                    if(response.ok) form.reset();
+                }catch(err){
+                    msgDiv.textContent = "ERROR: Network error or server not available";
+                    msgDiv.style.color = "red";
+                    console.error(err);
+                }
+            });
+        </script>
+        
+    </body>
+
+
+</html>

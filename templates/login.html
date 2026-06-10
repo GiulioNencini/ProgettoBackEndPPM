@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Login for ticket reservation API</title>
+    </head>
+    <body>
+        <form id="login-form">
+            <label>Username:
+                <input type="text" name="username">
+            </label><br>
+            <label>Password:
+                <input type="password" name="password">
+            </label><br>
+            <button type="submit">Login</button>
+        </form>
+    <div id="error-div">Something went wrong</div>
+    <p>Don't have an account?<a href="register.html"> Register</a></p>
+
+    <script src="api_base_url.js"></script>
+    <script>
+        const form = document.getElementById("login-form");//recupero elementi pagina
+        const errorDiv = document.getElementById("error-div");//mostrare eventuali messaggi di errore
+        const stored_token = localStorage.getItem("access_token");//recupera i token di accesso precedentemente generati, così facendo non è necessario rifare il login
+
+        window.addEventListener("DOMContentLoaded", async () => {
+            if (stored_token) {
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/userinfo`, {
+                        headers: {
+                            Authorization: `Bearer ${stored_token}`//inserimento del token nell'area di sicurezza
+                        }
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        //qui c'è il reindirizzamento automatico alla rispettiva dashboard
+                        if (data.is_admin) {
+                            window.location.href = "adminDashboard.html";
+                        } else {
+                            window.location.href = "userDashboard.html";
+                        }
+                    } else {
+                        localStorage.removeItem("access_token");
+                    }
+                } catch (error) {
+                    errorDiv.textContent = "ERROR: Network error or server not available";
+                }
+            }
+        });
+
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const username = form.username.value.trim();
+            const password = form.password.value.trim();
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/login`, {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({username, password})
+                });
+                const data = await response.json();
+
+                if (response.ok && data.access_token) {
+                    localStorage.setItem("access_token", data.access_token);
+
+                    await fetch(`${API_BASE_URL}/api/userinfo`, {
+                        method: "GET",
+                        headers: {"Authorization": "Bearer " + localStorage.getItem("access_token")}
+                    }).then(res => res.json()).then(user => {
+                        if (user.is_admin) {
+                            window.location.href = "adminDashboard.html";
+                        } else {
+                            window.location.href = "userDashboard.html";
+                        }
+                    })
+                } else {
+                    errorDiv.textContent = data.msg || "Login failed";
+                }
+            } catch (err) {
+                errorDiv.textContent = "ERROR: Network error or server not available";
+                console.error(err);
+            }
+        })
+    </script>
+    </body>
+</html>

@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang = "en">
+    <head>
+        <meta charset="UTF-8">
+        <title>User Dashboard</title>
+    </head>
+    <body>
+        <h1>Your Reservation Area</h1>
+
+        <form id="get-res">
+            <button type = "submit">Your actual reservation</button>
+        </form>
+        
+
+        <h2>Book a ticket now!</h2>
+        <form id="post-res">
+            <label>Enter the schedulingId
+                <input type="number" name="schedulingId">
+            </label><br>
+            <label>Enter the seatNumber
+                <input type="number" name="seatNumber">
+            </label><br>
+
+            <button type="submit">Confirm the choice</button>
+        </form>
+
+        <h2>Modify a reservation by schedulingId</h2>
+        <form id = "patch-res-id">
+            <label>Enter the id of your reservation
+                <input type="number" name="id">
+            </label><br>
+            <label>Enter the new schedulingId
+                <input type="number" name="schedulingId">
+            </label><br>
+            <button type="submit">Confirm changes</button>
+        </form>
+
+        <h2>Modify the seat number of your reservation</h2>
+        <form id="patch-res-sn">
+            <label>Enter the id of your reservation
+                <input type="number" name="id">
+            </label><br>
+            <label>Enter the new seatNumber
+                <input type="number" name="seatNumber">
+            </label><br>
+            <button type="submit">Confirm changes</button>
+        </form>
+
+        <h2>Delete a reservation</h2>
+        <form id="delete-res">
+            <label>Enter the id of your reservation
+                <input type="number" name="id">
+            </label><br>
+            <button type="submit">Confirm the deletion</button>
+        </form>
+
+        <button onclick="logout()">Logout</button>
+        <div id = "message"></div>
+        <script src = "api_base_url.js"></script>
+        <script>
+
+            function logout(){
+                localStorage.removeItem("access_token");
+                window.location.href = "index.html";
+            }
+
+            const msgDiv = document.getElementById("message");
+            const token = localStorage.getItem("access_token");
+
+            window.addEventListener("DOMContentLoaded", async () => {
+                if (token) {
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/api/userinfo`, {
+                            headers: {
+                                Authorization: `Bearer ${token}`
+                            }
+                        });
+
+                        const data = await response.json();
+
+                        if (!response.ok) {
+                            localStorage.removeItem("access_token");
+                            msgDiv.textContent = data.msg || data.error || "No more details"
+                            const br = document.createElement("br");
+                            msgDiv.appendChild(br)
+                            const span = document.createElement("span");
+                            span.textContent = "Please login again  ";
+                            msgDiv.appendChild(span);
+                            const a = document.createElement("a");
+                            a.href = "login.html";
+                            a.textContent = "Login";
+                            msgDiv.appendChild(a);
+                        }
+                    } catch (err) {
+                        msgDiv.textContent = "Network error or server not available";
+                    }
+                }else{
+                    window.location.href = "login.html";
+                    return;
+                }
+            });
+
+            //GET
+            document.getElementById("get-res").addEventListener("submit", async (e) => {
+                e.preventDefault();
+
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/reservation`, {
+                        method: 'GET',
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    });
+
+                    const data = await response.json();
+                    if (!response.ok) {
+                        msgDiv.textContent = data.msg;
+                        return;
+                    }
+
+                    msgDiv.innerHTML = "";
+                    data.forEach(res => {
+                        const p = document.createElement("p");
+
+                        p.innerHTML =
+                            `<p><strong>Reservation #</strong></p>${res.id_reservation}
+                             <p><strong>Show:</strong></p> ${res.show_title}
+                             <p><strong>Date:</strong></p> ${res.date}
+                             <p><strong>Time:</strong></p> ${res.time}
+                             <p><strong>Seat:</strong></p> ${res.seatNumber}`;
+
+                        msgDiv.appendChild(p);
+                    });
+
+                } catch (err) {
+                    msgDiv.textContent = "Network error";
+                }
+            });
+
+            //POST
+            document.getElementById("post-res").addEventListener("submit", async (e) => {
+                e.preventDefault();
+
+                const form = e.target;
+
+                const schedulingId = parseInt(form.schedulingId.value);
+                const seatNumber = parseInt(form.seatNumber.value);
+
+                try {
+                    const response = await fetch(
+                        `${API_BASE_URL}/api/reservation/${schedulingId}`,
+                        {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${token}`
+                            },
+                            body: JSON.stringify({
+                                schedulingId,
+                                seatNumber
+                            })
+                        }
+                    );
+
+                    const data = await response.json();
+                    msgDiv.textContent = data.msg || data.error || "No more details";
+
+                    if (response.ok) form.reset();
+
+                } catch (err) {
+                    msgDiv.textContent = "Network error";
+                }
+            });
+
+            //PATCH per schedulingId
+            document.getElementById("patch-res-id").addEventListener("submit", async (e) => {
+                e.preventDefault();
+
+                const form = e.target;
+
+                const reservationId = form.id.value;
+                const schedulingId = parseInt(form.schedulingId.value);
+
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/reservation/${reservationId}`,
+                        {
+                            method: "PATCH",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${token}`
+                            },
+                            body: JSON.stringify({
+                                schedulingId
+                            })
+                        }
+                    );
+
+                    const data = await response.json();
+                    msgDiv.textContent = data.msg || data.error || "No more details";
+
+                    if (response.ok) form.reset();
+
+                } catch (err) {
+                    msgDiv.textContent = "Network error";
+                }
+            });
+
+            //PATCH per seatNumber
+            document.getElementById("patch-res-sn").addEventListener("submit", async (e) => {
+                e.preventDefault();
+
+                const form = e.target;
+
+                const reservationId = parseInt(form.id.value);
+                const seatNumber = parseInt(form.seatNumber.value);
+
+                try {
+                    const response = await fetch(
+                        `${API_BASE_URL}/api/reservation/${reservationId}`,
+                        {
+                            method: "PATCH",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: `Bearer ${token}`
+                            },
+                            body: JSON.stringify({
+                                seatNumber
+                            })
+                        }
+                    );
+
+                    const data = await response.json();
+
+                    msgDiv.textContent = data.msg || data.error || "No more details";
+
+                    if (response.ok) form.reset();
+
+                } catch (err) {
+                    msgDiv.textContent = "Network error";
+                }
+            });
+
+            //DELETE
+            document.getElementById("delete-res").addEventListener("submit", async (e) => {
+                e.preventDefault();
+
+                const form = e.target;
+                const reservationId = form.id.value;
+
+                try {
+                    const response = await fetch(
+                        `${API_BASE_URL}/api/reservation/${reservationId}`,
+                        {
+                            method: "DELETE",
+                            headers: {
+                                Authorization: `Bearer ${token}`
+                            }
+                        }
+                    );
+
+                    const data = await response.json();
+
+                    msgDiv.textContent = data.msg || data.error || "No more details";
+                    msgDiv.style.color = response.ok ? "green" : "red";
+
+                    if (response.ok) form.reset();
+
+                } catch (err) {
+                    msgDiv.textContent = "Network error or server not available";
+                    msgDiv.style.color = "red";
+                    console.error(err);
+                }
+            });
+        </script>
+    </body>
+</html>
