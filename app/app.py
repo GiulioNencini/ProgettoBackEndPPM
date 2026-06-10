@@ -23,10 +23,10 @@ with app.app_context():
     db.create_all()
     create_admin()
 
-"""
+
 @app.errorhandler(405)
 def method_not_allowed():
-    return jsonify({"error": "Method not allowed"}), 405"""
+    return jsonify({"error": "Method not allowed"}), 405
 
 @app.route('/')
 def hello_app():
