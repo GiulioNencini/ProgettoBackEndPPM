@@ -98,7 +98,7 @@ class EventsView(MethodView):
         return jsonify({'msg': 'Show added successfully'}), 201
 
 
-ticket_service_bp.add_url_rule('/events', view_func=EventsView.as_view('events'))# non c'è passaggio di argomenti, quindi basta scrivere questo
+ticket_service_bp.add_url_rule('/events', view_func=EventsView.as_view('events'), methods = ['GET', 'POST'])# non c'è passaggio di argomenti, quindi basta scrivere questo
 
 @ticket_service_bp.route('/scheduling/<int:showId>', methods = ['POST']) 
 @jwt_required()

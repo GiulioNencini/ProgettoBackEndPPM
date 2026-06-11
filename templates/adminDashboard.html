@@ -5,6 +5,7 @@
         <title>Admin Dashboard</title>
     </head>
     <body>
+        <h1>Admin Dashboard</h1>
         <h2>Add Event</h2>
         <form id = "event-form">
             <label>Title
@@ -93,7 +94,7 @@
                 const form = e.target
                 const title = form.title.value.trim();
                 const descrption = form.description.value.trim();
-                const price = form.price.value;
+                const price = parseInt(form.price.value);
                 //const price = parseFloat(form.price.value);
 
                 try{

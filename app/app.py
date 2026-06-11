@@ -25,7 +25,7 @@ with app.app_context():
 
 
 @app.errorhandler(405)
-def method_not_allowed():
+def method_not_allowed(e):
     return jsonify({"error": "Method not allowed"}), 405
 
 @app.route('/')
