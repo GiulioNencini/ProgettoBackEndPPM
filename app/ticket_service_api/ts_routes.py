@@ -6,7 +6,7 @@ from models.reservation import Reservation
 from models.scheduling import Scheduling
 from models.showing import Showing
 from db import db, to_dict
-from datetime import datetime
+from datetime import datetime, date
 
 
 
@@ -116,6 +116,10 @@ def postScheduling(showId):
         return jsonify({'msg' : 'Show not found for scheduling'}), 404
 
     sch_date = datetime.strptime(data.get('date') , '%Y-%m-%d')
+
+    if sch_date < date.today():
+        return jsonify({'msg' : 'Invalid date for scheduling'})
+
     sch_time = datetime.strptime(data.get('time') , '%H:%M').time()
     sch_totalSeats = data.get('totalSeats')
 
@@ -174,6 +178,10 @@ class ReservationView(MethodView):
 
         if res_seatNumber < 1 or res_seatNumber > scheduling.totalSeats:
             return jsonify({'msg': f'Invalid seat number. Choose between 1 and {scheduling.totalSeats}'}), 400
+        
+        if scheduling.date < date.today():
+            return jsonify({'msg' : 'This event is already ended'})
+
 
         existing_reservation = Reservation.query.filter_by(
             schedulingId=scheduling_id, 

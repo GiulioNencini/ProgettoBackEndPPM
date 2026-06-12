@@ -5,7 +5,7 @@
         <title>User Dashboard</title>
     </head>
     <body>
-        <h1>Your Reservation Area</h1>
+        <h1>Your Reservation Area <span id ="user_name"></span></h1>
 
         <form id="get-res">
             <button type = "submit">Your actual reservation</button>
@@ -91,6 +91,10 @@
                             a.textContent = "Login";
                             msgDiv.appendChild(a);
                         }
+                        if (data.is_admin) 
+                            window.location.href = "adminDashboard.html";
+                        else //fa apparire il nome utente in cima
+                            document.getElementById("user_name").textContent = data.username;
                     } catch (err) {
                         msgDiv.textContent = "Network error or server not available";
                     }
@@ -123,11 +127,12 @@
                         const p = document.createElement("p");
 
                         p.innerHTML =
-                            `<p><strong>Reservation #</strong></p>${res.id_reservation}
-                             <p><strong>Show:</strong></p> ${res.show_title}
-                             <p><strong>Date:</strong></p> ${res.date}
-                             <p><strong>Time:</strong></p> ${res.time}
-                             <p><strong>Seat:</strong></p> ${res.seatNumber}`;
+                            `<p><strong>Reservation #</strong>${res.id_reservation}</p>
+                             <p><strong>Show:</strong> ${res.show_title}</p>
+                             <p><strong>Date:</strong> ${res.date}</p>
+                             <p><strong>Time:</strong> ${res.time}</p>
+                             <p><strong>Seat:</strong> ${res.seatNumber}</p>
+                             <p>----------------------</p>`;
 
                         msgDiv.appendChild(p);
                     });
@@ -145,6 +150,12 @@
 
                 const schedulingId = parseInt(form.schedulingId.value);
                 const seatNumber = parseInt(form.seatNumber.value);
+
+                if (schedulingId <= 0 || seatNumber <= 0) {
+                    msgDiv.textContent = "ERROR: schedulingId and seatNumber must be greater than zero!";
+                    msgDiv.style.color = "red";
+                    return;
+                }
 
                 try {
                     const response = await fetch(
@@ -169,6 +180,7 @@
 
                 } catch (err) {
                     msgDiv.textContent = "Network error";
+                    msgDiv.style.color ="red";
                 }
             });
 

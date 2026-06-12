@@ -93,9 +93,10 @@
 
                 const form = e.target
                 const title = form.title.value.trim();
-                const descrption = form.description.value.trim();
+                const description = form.description.value.trim();
                 const price = parseInt(form.price.value);
                 //const price = parseFloat(form.price.value);
+
 
                 try{
                     const response = await fetch(`${API_BASE_URL}/api/events`, {
@@ -124,6 +125,13 @@
                 const time = form.time.value;
                 const totalSeats = form.totalSeats.value;
                 //const totalSeats = parseInt(form.totalSeats.value);
+
+                
+                if (showId <= 0 || totalSeats <= 0 || totalSeats > 300) {
+                    msgDiv.textContent = "ERROR: Show ID and Total Seats must be greater than zero! The max number of seats is 300.";
+                    msgDiv.style.color = "red";
+                    return;
+                }
 
                 try{
                     const response = await fetch(`${API_BASE_URL}/api/scheduling/${showId}`, {
