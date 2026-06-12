@@ -132,6 +132,17 @@
                     msgDiv.style.color = "red";
                     return;
                 }
+                // --- CONTROLLO DELLA DATA A FRONTEND ---
+                const selectedDate = new Date(dateValue);
+                selectedDate.setHours(0, 0, 0, 0); // Azzera l'orario della data scelta
+                const today = new Date();
+                today.setHours(0, 0, 0, 0); // Azzera l'orario di oggi
+
+                if (selectedDate < today) {
+                    msgDiv.textContent = "ERROR: You cannot schedule events in the past!";
+                    msgDiv.style.color = "red";
+                    return; // Blocca la fetch!
+                }
 
                 try{
                     const response = await fetch(`${API_BASE_URL}/api/scheduling/${showId}`, {

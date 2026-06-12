@@ -116,10 +116,6 @@ def postScheduling(showId):
         return jsonify({'msg' : 'Show not found for scheduling'}), 404
 
     sch_date = datetime.strptime(data.get('date') , '%Y-%m-%d')
-
-    if sch_date < date.today():
-        return jsonify({'msg' : 'Invalid date for scheduling'}), 403
-
     sch_time = datetime.strptime(data.get('time') , '%H:%M').time()
     sch_totalSeats = data.get('totalSeats')
 
