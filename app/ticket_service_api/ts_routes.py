@@ -118,7 +118,7 @@ def postScheduling(showId):
     sch_date = datetime.strptime(data.get('date') , '%Y-%m-%d')
 
     if sch_date < date.today():
-        return jsonify({'msg' : 'Invalid date for scheduling'})
+        return jsonify({'msg' : 'Invalid date for scheduling'}), 403
 
     sch_time = datetime.strptime(data.get('time') , '%H:%M').time()
     sch_totalSeats = data.get('totalSeats')
@@ -180,7 +180,7 @@ class ReservationView(MethodView):
             return jsonify({'msg': f'Invalid seat number. Choose between 1 and {scheduling.totalSeats}'}), 400
         
         if scheduling.date < date.today():
-            return jsonify({'msg' : 'This event is already ended'})
+            return jsonify({'msg' : 'This event is already ended'}), 403
 
 
         existing_reservation = Reservation.query.filter_by(
