@@ -134,20 +134,6 @@ def postScheduling(showId):
 
     return jsonify({'msg': 'Show scheduled successfully'}), 201
 
-"""
-@ticket_service_bp.route('/check_scheduling', methods = ['GET'])
-@jwt_required()
-def getScheduling():
-    user_id = get_jwt_identity()
-    user: User = User.query.filter_by(id=user_id).first()
-
-    if not user:
-        return jsonify({'msg' : 'Login required'}), 403
-    
-    availableScheduling = Scheduling.query.filter(Scheduling.date > date.today()).all()
-    for av in availableScheduling:
-"""
-
 class ReservationView(MethodView):
     decorators = [jwt_required()] #questo decorator è applicato a tutti i metodi della classe
 
@@ -196,6 +182,11 @@ class ReservationView(MethodView):
         if scheduling.date < date.today():
             return jsonify({'msg' : 'This event is already ended'}), 403
 
+        existing_reservation = Reservation.query.filter(schedulinId = scheduling_id).all()
+        if len(existing_reservation) == res_seatNumber:
+            return jsonify({'msg' : 'This day is SOLD-OUT'}), 403
+        
+        existing_reservation = None #riusata subito dopo
 
         existing_reservation = Reservation.query.filter_by(
             schedulingId=scheduling_id, 
