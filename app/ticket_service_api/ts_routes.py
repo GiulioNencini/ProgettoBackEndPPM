@@ -106,6 +106,9 @@ def postScheduling(showId):
     user_id = get_jwt_identity()
     user: User = User.query.filter_by(id=user_id).first()
 
+    if not user:
+        return jsonify({'msg' : 'Login required'}), 403
+
     if not user.is_admin:
         return jsonify({'msg': 'Admin reserved area'}), 403
 
@@ -131,6 +134,20 @@ def postScheduling(showId):
 
     return jsonify({'msg': 'Show scheduled successfully'}), 201
 
+"""
+@ticket_service_bp.route('/check_scheduling', methods = ['GET'])
+@jwt_required()
+def getScheduling():
+    user_id = get_jwt_identity()
+    user: User = User.query.filter_by(id=user_id).first()
+
+    if not user:
+        return jsonify({'msg' : 'Login required'}), 403
+    
+    availableScheduling = Scheduling.query.filter(Scheduling.date > date.today()).all()
+    for av in availableScheduling:
+"""
+
 class ReservationView(MethodView):
     decorators = [jwt_required()] #questo decorator è applicato a tutti i metodi della classe
 
@@ -152,6 +169,7 @@ class ReservationView(MethodView):
             results.append({
                 "id_reservation": usRes.id,
                 "show_title": show.title,
+                "schedulingId": usRes.schedulingId,
                 "date": sched.date.strftime('%Y-%m-%d'),
                 "time": sched.time.strftime('%H:%M'),
                 "seatNumber": usRes.seatNumber
@@ -223,7 +241,7 @@ class ReservationView(MethodView):
         reservation : Reservation = Reservation.query.filter_by(id=reservation_id).first()
         if not reservation:
             return jsonify({'msg': 'Reservation not found'}), 404
-        if reservation.userId != user_id:
+        if reservation.userId != int(user_id):
             return jsonify({'msg': 'userId and reservationId are not compatible'}), 403
         
         actualScheduling : Scheduling = Scheduling.query.filter_by(id=reservation.schedulingId).first()
@@ -236,6 +254,9 @@ class ReservationView(MethodView):
             new_scheduling : Scheduling = Scheduling.query.filter_by(id=new_sched_id).first()
             if not new_scheduling:
                 return jsonify({'msg': 'Scheduling not found for update'}), 404
+            
+            if actualScheduling.showId != new_scheduling.showId:
+                return jsonify({'msg' : 'Select a scheduling whose showId is the same of your current scheduling'})
             
             seat_to_assign = reservation.seatNumber
             seat_taken = Reservation.query.filter_by(schedulingId=new_sched_id, seatNumber=seat_to_assign).first()

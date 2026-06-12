@@ -5,9 +5,6 @@
         <title>Ticket Reservation for Theatre</title>
     </head>
     <body>
-    <h2>Next Events</h2>
-    <pre id="result"></pre>
-    <p id="warning-msg" style="color:red"></p>
     <p>
         Please login your account to reserve a ticket
         <a href="login.html">Login</a>
@@ -16,6 +13,9 @@
         You haven't an account? Create it now!
         <a href="register.html">Register</a>
     </p>
+    <h2>Next Events</h2>
+    <div id="result"></div>
+    <p id="warning-msg" style="color:red"></p>
 
     <script src="api_base_url.js"></script>
     <script>
@@ -64,6 +64,52 @@
             } catch (error) {
                 console.error("Error fetching events:", error);
                 eventsContainer.innerHTML = "<p style='color:red;'>Error: Network error or server not available.</p>";
+            }
+        });
+
+        window.addEventListener("DOMContentLoaded", async () => {
+            const resultPre = document.getElementById("result");
+
+            // Calcola la data di oggi in formato YYYY-MM-DD
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            const currentDateString = `${yyyy}-${mm}-${dd}`;
+
+            try {
+                // Effettua la GET verso l'URL corretto passando la data come parametro richiesto dal backend
+                const response = await fetch(`${API_BASE_URL}/api/events?date=${currentDateString}`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    resultPre.textContent = data.msg || "Error fetching events.";
+                    return;
+                }
+
+                // Se ci sono eventi, li stampa formattati in JSON dentro il tag <pre>
+                if (data.length === 0) {
+                    resultPre.textContent = "No upcoming events found.";
+                } else {
+                    data.forEach(event => {
+                    // Creiamo un pezzetto di HTML per l'evento corrente
+                    resultPre.innerHTML += `
+                        <div>
+                            <p>-----------------------</p>
+                            <h3>${event.show_title}</h3>
+                            <p><strong>Description:</strong> ${event.description || "No description available"}</p>
+                            <p><strong>Price:</strong> €${event.price}</p>
+                            <p><strong>Date & Time:</strong> ${event.date} at ${event.time}</p>
+                            <p><strong>Scheduling Code (ID):</strong> ${event.id_scheduling}</p>
+                            <p>-----------------------</p>
+                        </div>
+                    `;
+                    });
+                }
+            
+            } catch (error) {
+                console.error("Error fetching events:", error);
+                resultPre.textContent = "ERROR: Network error or server not available.";
             }
         });
     </script>

@@ -97,6 +97,11 @@
                 const price = parseInt(form.price.value);
                 //const price = parseFloat(form.price.value);
 
+                if (price < 1){
+                    msgDiv.textContent = "ERROR: Price must be greater than 0";
+                    msgDiv.style.color = "red";
+                    return;
+                }
 
                 try{
                     const response = await fetch(`${API_BASE_URL}/api/events`, {
@@ -133,15 +138,18 @@
                     return;
                 }
                 // --- CONTROLLO DELLA DATA A FRONTEND ---
-                const selectedDate = new Date(dateValue);
-                selectedDate.setHours(0, 0, 0, 0); // Azzera l'orario della data scelta
-                const today = new Date();
-                today.setHours(0, 0, 0, 0); // Azzera l'orario di oggi
+                // Generiamo la stringa di oggi nel formato esatto YYYY-MM-DD del fuso orario locale
+                const todayObj = new Date();
+                const yyyy = todayObj.getFullYear();
+                const mm = String(todayObj.getMonth() + 1).padStart(2, '0'); // Gennaio è 0!
+                const dd = String(todayObj.getDate()).padStart(2, '0');
+                const todayStr = `${yyyy}-${mm}-${dd}`;
 
-                if (selectedDate < today) {
+                // In JavaScript, le stringhe in formato YYYY-MM-DD si possono confrontare direttamente con < e >
+                if (date < todayStr) {
                     msgDiv.textContent = "ERROR: You cannot schedule events in the past!";
                     msgDiv.style.color = "red";
-                    return; // Blocca la fetch!
+                    return;
                 }
 
                 try{
