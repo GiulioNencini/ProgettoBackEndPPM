@@ -70,7 +70,6 @@
         window.addEventListener("DOMContentLoaded", async () => {
             const resultPre = document.getElementById("result");
 
-            // Calcola la data di oggi in formato YYYY-MM-DD
             const today = new Date();
             const yyyy = today.getFullYear();
             const mm = String(today.getMonth() + 1).padStart(2, '0');
@@ -78,7 +77,6 @@
             const currentDateString = `${yyyy}-${mm}-${dd}`;
 
             try {
-                // Effettua la GET verso l'URL corretto passando la data come parametro richiesto dal backend
                 const response = await fetch(`${API_BASE_URL}/api/events?date=${currentDateString}`);
                 const data = await response.json();
 
@@ -87,12 +85,10 @@
                     return;
                 }
 
-                // Se ci sono eventi, li stampa formattati in JSON dentro il tag <pre>
                 if (data.length === 0) {
                     resultPre.textContent = "No upcoming events found.";
                 } else {
                     data.forEach(event => {
-                    // Creiamo un pezzetto di HTML per l'evento corrente
                     resultPre.innerHTML += `
                         <div>
                             <p>-----------------------</p>

@@ -8,4 +8,3 @@ class Showing(db.Model):
     price: Mapped[int] = mapped_column(nullable=False)
 
     scheduledOn = relationship('Scheduling', backref='showing')
-    # dateAmleto = amleto.scheduling

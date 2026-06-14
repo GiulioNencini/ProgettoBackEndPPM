@@ -19,23 +19,22 @@
 
     <script src="api_base_url.js"></script>
     <script>
-        const form = document.getElementById("login-form");//recupero elementi pagina
-        const errorDiv = document.getElementById("error-div");//mostrare eventuali messaggi di errore
-        const stored_token = localStorage.getItem("access_token");//recupera i token di accesso precedentemente generati, così facendo non è necessario rifare il login
+        const form = document.getElementById("login-form");
+        const errorDiv = document.getElementById("error-div");
+        const stored_token = localStorage.getItem("access_token");
 
         window.addEventListener("DOMContentLoaded", async () => {
             if (stored_token) {
                 try {
                     const response = await fetch(`${API_BASE_URL}/api/userinfo`, {
                         headers: {
-                            Authorization: `Bearer ${stored_token}`//inserimento del token nell'area di sicurezza
+                            Authorization: `Bearer ${stored_token}`
                         }
                     });
 
                     const data = await response.json();
 
                     if (response.ok) {
-                        //qui c'è il reindirizzamento automatico alla rispettiva dashboard
                         if (data.is_admin) {
                             window.location.href = "adminDashboard.html";
                         } else {
@@ -79,6 +78,7 @@
                     })
                 } else {
                     errorDiv.textContent = data.msg || "Login failed";
+                    errorDiv.style.color = "red";
                 }
             } catch (err) {
                 errorDiv.textContent = "ERROR: Network error or server not available";

@@ -27,9 +27,8 @@ class EventsView(MethodView):
             verify_jwt_in_request(optional=True)
             user_id = get_jwt_identity()
         except Exception:
-            user_id = None #In questo caso abbiamo a che fare con un anonimo
+            user_id = None
 
-        #Tutti gli eventi post showDate_str
         showing_scheduling: Scheduling = Scheduling.query.filter(Scheduling.date > showDate).all()
 
         if showing_scheduling is None:
@@ -37,10 +36,9 @@ class EventsView(MethodView):
         
         results = []
         for sched in showing_scheduling:
-            # Sfruttiamo la relazione per prendere i dati dello spettacolo associato
+            # Sfruttiamo la relationship per prendere i dati dello spettacolo associato
             show = sched.showing  
             
-            # Struttura dati base (per utenti anonimi e loggati)
             event_data = {
                 "id_scheduling": sched.id,
                 "date": sched.date.strftime('%Y-%m-%d'),
@@ -50,7 +48,8 @@ class EventsView(MethodView):
                 "price": show.price
             }
             
-            # SE L'UTENTE È AUTENTICATO, AGGIUNGIAMO I POSTI RIMANENTI
+            
+            #La query eseguita è la seguente
             """SELECT scheduling.*, showing.title, (scheduling.totalSeats - COUNT(reservation.id)) AS seats_left
                 FROM scheduling
                 JOIN showing ON scheduling.idShow = showing.id
@@ -58,7 +57,6 @@ class EventsView(MethodView):
                 WHERE scheduling.date > '2026-06-08'
                 GROUP BY scheduling.id;"""
             if user_id is not None:
-                # len(sched.reservations) conta quante prenotazioni esistono per questa recita
                 posti_occupati = len(sched.reservations)
                 posti_rimanenti = sched.totalSeats - posti_occupati
                 
@@ -70,7 +68,7 @@ class EventsView(MethodView):
         return jsonify(results), 200
 
     @jwt_required()
-    def post(self):#azioni dell'admin
+    def post(self):
         user_id = get_jwt_identity()
         user: User = User.query.filter_by(id=user_id).first()
 
@@ -98,7 +96,7 @@ class EventsView(MethodView):
         return jsonify({'msg': 'Show added successfully'}), 201
 
 
-ticket_service_bp.add_url_rule('/events', view_func=EventsView.as_view('events'), methods = ['GET', 'POST'])# non c'è passaggio di argomenti, quindi basta scrivere questo
+ticket_service_bp.add_url_rule('/events', view_func=EventsView.as_view('events'), methods = ['GET', 'POST'])
 
 @ticket_service_bp.route('/scheduling/<int:showId>', methods = ['POST']) 
 @jwt_required()
@@ -135,7 +133,7 @@ def postScheduling(showId):
     return jsonify({'msg': 'Show scheduled successfully'}), 201
 
 class ReservationView(MethodView):
-    decorators = [jwt_required()] #questo decorator è applicato a tutti i metodi della classe
+    decorators = [jwt_required()]
 
     # Status delle prenotazioni dell'utente
     def get(self):
@@ -182,11 +180,11 @@ class ReservationView(MethodView):
         if scheduling.date < date.today():
             return jsonify({'msg' : 'This event is already ended'}), 403
 
-        existing_reservation = Reservation.query.filter(schedulinId = scheduling_id).all()
-        if len(existing_reservation) == res_seatNumber:
+        existing_reservation = Reservation.query.filter_by(schedulingId = scheduling_id).count()
+        if existing_reservation == scheduling.totalSeats:
             return jsonify({'msg' : 'This day is SOLD-OUT'}), 403
         
-        existing_reservation = None #riusata subito dopo
+        existing_reservation = None
 
         existing_reservation = Reservation.query.filter_by(
             schedulingId=scheduling_id, 

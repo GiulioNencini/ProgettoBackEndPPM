@@ -99,7 +99,7 @@
                         }
                         if (data.is_admin) 
                             window.location.href = "adminDashboard.html";
-                        else //fa apparire il nome utente in cima
+                        else
                             document.getElementById("user_name").textContent = data.username;
                     } catch (err) {
                         msgDiv.textContent = "Network error or server not available";
@@ -152,7 +152,6 @@
             window.addEventListener("DOMContentLoaded", async () => {
             const resultPre = document.getElementById("get-sched");
 
-            // Calcola la data di oggi in formato YYYY-MM-DD
             const today = new Date();
             const yyyy = today.getFullYear();
             const mm = String(today.getMonth() + 1).padStart(2, '0');
@@ -160,11 +159,9 @@
             const currentDateString = `${yyyy}-${mm}-${dd}`;
 
             try {
-                // Effettua la GET verso l'URL corretto passando la data come parametro richiesto dal backend
                 const response = await fetch(`${API_BASE_URL}/api/events?date=${currentDateString}`,{
                     method: "GET",
                     headers: {
-                        // QUESTO È FONDAMENTALE: permette al backend di leggere user_id!
                         "Authorization": `Bearer ${token}` 
                     }
                 });
@@ -175,12 +172,10 @@
                     return;
                 }
 
-                // Se ci sono eventi, li stampa formattati in JSON dentro il tag <pre>
                 if (data.length === 0) {
                     resultPre.textContent = "No upcoming events found.";
                 } else {
                     data.forEach(event => {
-                    // Creiamo un pezzetto di HTML per l'evento corrente
                     resultPre.innerHTML += `
                         <div>
                             <p>-----------------------</p>

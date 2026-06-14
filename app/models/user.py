@@ -9,7 +9,6 @@ class User(db.Model):
     is_admin: Mapped[bool] = mapped_column(default=False)
 
     reservations = relationship('Reservation', backref='user')
-    # prenotazioniMario = mario.reservation
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -17,7 +16,7 @@ class User(db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-def create_admin():# c'è un solo admin
+def create_admin():# si assume che il sistema abbia un solo admin
     if not User.query.filter_by(is_admin=True).first():
         admin = User(username='admin', is_admin=True)
         admin.set_password('admin')

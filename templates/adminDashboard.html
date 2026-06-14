@@ -38,6 +38,8 @@
         </form><br>
 
         <button onclick="logout()">Logout</button>
+        <p>____________________________</p>
+        <p>OUTPUT MESSAGE:</p>
         <div id="message"></div>
 
         <script src = "api_base_url.js"></script>
@@ -95,7 +97,6 @@
                 const title = form.title.value.trim();
                 const description = form.description.value.trim();
                 const price = parseInt(form.price.value);
-                //const price = parseFloat(form.price.value);
 
                 if (price < 1){
                     msgDiv.textContent = "ERROR: Price must be greater than 0";
@@ -129,7 +130,6 @@
                 const date = form.date.value;
                 const time = form.time.value;
                 const totalSeats = form.totalSeats.value;
-                //const totalSeats = parseInt(form.totalSeats.value);
 
                 
                 if (showId <= 0 || totalSeats <= 0 || totalSeats > 300) {
@@ -137,15 +137,13 @@
                     msgDiv.style.color = "red";
                     return;
                 }
-                // --- CONTROLLO DELLA DATA A FRONTEND ---
-                // Generiamo la stringa di oggi nel formato esatto YYYY-MM-DD del fuso orario locale
+
                 const todayObj = new Date();
                 const yyyy = todayObj.getFullYear();
-                const mm = String(todayObj.getMonth() + 1).padStart(2, '0'); // Gennaio è 0!
+                const mm = String(todayObj.getMonth() + 1).padStart(2, '0'); // Gennaio è 0
                 const dd = String(todayObj.getDate()).padStart(2, '0');
                 const todayStr = `${yyyy}-${mm}-${dd}`;
 
-                // In JavaScript, le stringhe in formato YYYY-MM-DD si possono confrontare direttamente con < e >
                 if (date < todayStr) {
                     msgDiv.textContent = "ERROR: You cannot schedule events in the past!";
                     msgDiv.style.color = "red";

@@ -8,8 +8,8 @@ def to_dict(data):
     for column in data.__table__.columns:
         attr = getattr(data, column.name)
 
-        if isinstance(attr, (date, time)): # converte in stringa le variabili della forma 'YYYY-MM-DD' o 'HH:MM:SS'
+        if isinstance(attr, (date, time)):
             attr = attr.isoformat()  
         
-        results[column.name] = attr #si costruisce la forma chiave : attributo
+        results[column.name] = attr
     return results
