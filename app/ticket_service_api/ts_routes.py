@@ -247,6 +247,10 @@ class ReservationView(MethodView):
             if actualScheduling.showId != new_scheduling.showId:
                 return jsonify({'msg' : 'Select a scheduling whose showId is the same of your current scheduling'})
             
+            total_booked = Reservation.query.filter_by(schedulingId=new_sched_id).count()
+            if total_booked >= new_scheduling.totalSeats:
+                return jsonify({'msg': 'Target show is completely sold out, cannot move reservation'}), 400
+
             seat_to_assign = reservation.seatNumber
             seat_taken = Reservation.query.filter_by(schedulingId=new_sched_id, seatNumber=seat_to_assign).first()
         
