@@ -244,6 +244,9 @@ class ReservationView(MethodView):
             if not new_scheduling:
                 return jsonify({'msg': 'Scheduling not found for update'}), 404
             
+            if new_scheduling.date.date() < date.today():
+                return jsonify({'msg' : 'You are trying to modify into a scheduling already ended'}), 403
+            
             if actualScheduling.showId != new_scheduling.showId:
                 return jsonify({'msg' : 'Select a scheduling whose showId is the same of your current scheduling'})
             
