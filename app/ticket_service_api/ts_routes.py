@@ -248,7 +248,7 @@ class ReservationView(MethodView):
                 return jsonify({'msg' : 'You are trying to modify into a scheduling already ended'}), 403
             
             if actualScheduling.showId != new_scheduling.showId:
-                return jsonify({'msg' : 'Select a scheduling whose showId is the same of your current scheduling'})
+                return jsonify({'msg' : 'Select a scheduling whose showId is the same of your current scheduling'}), 403
             
             total_booked = Reservation.query.filter_by(schedulingId=new_sched_id).count()
             if total_booked >= new_scheduling.totalSeats:
@@ -283,7 +283,7 @@ class ReservationView(MethodView):
             ).filter(~Reservation.id.in_([reservation_id])).first()
 
             if reservationBySeatNumber:
-                return jsonify({'msg': f'The seat number {new_seat_number} is already taken'}), 403
+                return jsonify({'msg': f'The seat number {new_seat_number} is already taken'}), 409
             
             reservation.seatNumber = new_seat_number
             db.session.commit()
@@ -303,5 +303,7 @@ ticket_service_bp.add_url_rule('/reservation/<int:reservation_id>', view_func=re
 def userInfo():
     user_id = get_jwt_identity()
     user = User.query.filter_by(id=user_id).first()
-
+    if not user:
+        return jsonify({'msg': 'Login required'}), 403
+    
     return jsonify(to_dict(user)), 200
