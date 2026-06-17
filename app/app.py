@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, render_template
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from db import db
@@ -30,7 +30,7 @@ def method_not_allowed(e):
 
 @app.route('/')
 def hello_app():
-    return jsonify({"msg": "Hello! Check documentation to start using API for Ticket Reservation"})
+    return render_template("index.html", error="General Error")
 
 
 if __name__ == '__main__':
