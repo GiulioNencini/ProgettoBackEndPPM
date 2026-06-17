@@ -30,8 +30,7 @@ def method_not_allowed(e):
 
 @app.route('/')
 def hello_app():
-    return render_template("index.html")
-
+    return jsonify({'msg' : 'Hello! Check about setup in documentation to use the service'}), 200
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5050)))
