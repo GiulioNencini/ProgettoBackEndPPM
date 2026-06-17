@@ -1,6 +1,6 @@
 # Ticket Reservation API
 Il servizio fornito da questa app è la prenotazione di biglietti per un teatro. L'utente può prenotare, modificare la sua prenotazione o cancellarla. È sviluppato mediante Flask in linguaggio Python.
-## Link del deploy
+## Link di deploy
 HomePage: [progettobackendppm-production.up.railway.app](https://progettobackendppm-production.up.railway.app)
 
 Oppure seguire le istruzioni per il setup locale per avviarlo mediante l'index.html
@@ -27,7 +27,7 @@ Impostare in un file `.env` le seguenti variabili:
   - `DATABASE_URL`: url del database. È presente un piccolo database pre-popolato nel progetto: per usarlo impostare la variabile `= sqlite:///instance/database.db`.
   - `PORT`: porta sulla quale il server Flask deve mettersi in ascolto. Di default è stata impostata a `5050`.
 
-Avviare l'app può essere avviata da terminale con `python app.py`. Adesso il server sarà in esecuzione su localhost.
+L'app può essere avviata da terminale con `python app.py`. Adesso il server sarà in esecuzione su localhost.
 
 # Setup locale del Client
 Nel file `api_base_url.js`, impostare la variabile `API_BASE_URL` all'URL dell'API. Con il database del repo usare: `http://localhost:<port>`
@@ -75,7 +75,7 @@ seatNumber |  Integer  | Il numero del posto prenotato  |
 
 # Documentazione dell'API
 `Note per l'utilizzo:`
- - `Il database` è prepopulato, basta aprire il file database.db. È importante segnalare che al momento dell'apertura dell'app alcune schedulazioni potrebbero non essere più disponibili: è presente una funzione di controllo per cui non è possibile prenotare eventi passati.
+ - `Il database` è prepopolato, basta aprire il file database.db. È importante segnalare che al momento dell'apertura dell'app alcune schedulazioni potrebbero non essere più disponibili: è presente una funzione di controllo per cui non è possibile prenotare eventi passati.
  - Non è possibile avere più di due admin. Le credenziali dell'admin sono le seguenti: `username: admin` e `password: admin`.
  - Le credenziali di ogni utente già registrato sono omonime. Es: `username: giulio` e `password: giulio`.
  - l'API risponde sempre in formato JSON
@@ -224,4 +224,20 @@ Nessuno, basta essere loggati
 
 **Risposte**
  - `403 FORBIDDEN`: login non effettuato.
- - `OK`: risposta ottenuta.
+ - `200 OK`: risposta ottenuta.
+
+### `api/show-admin`
+
+#### GET
+Usata nell'adminDashboard per far apparire a schermo le informazioni utili per lo scheduling di uno spettacolo.
+
+**Parametri**
+Nessuno, basta che l'utente loggato sia l'admin.
+
+**Risposte***
+ - `403 FORBIDDEN`: login non effettuato o l'utente loggato non è l'admin.
+ - `404 NOT FOUND`: Non ci sono spettacoli schedulabili
+ - `200 OK`: risposta ottenuta.
+
+## Per il Testing
+È possibile testare ogni funzionalità direttamente dall'interfaccia inserendo i valori richiesti. Nella tabella scheduling è presente un evento con solo un posto prenotabile, può essere sfruttato per testare i casi in cui un utente tenta di modificare la sua prenotazione in un giorno che è già sold out. Per la creazione di una prenotazione non importa perché è chiesto esplicitamente quale posto prenotare, se il posto è già occupato bisogna inserirne un altro.

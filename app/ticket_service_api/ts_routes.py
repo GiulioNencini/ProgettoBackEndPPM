@@ -98,6 +98,34 @@ class EventsView(MethodView):
 
 ticket_service_bp.add_url_rule('/events', view_func=EventsView.as_view('events'), methods = ['GET', 'POST'])
 
+@ticket_service_bp.route('/show-admin', methods = ['GET'])
+@jwt_required()
+def getEventsForAdmin():
+        user_id = get_jwt_identity()
+        user: User = User.query.filter_by(id=user_id).first()
+
+        if not user.is_admin:
+            return jsonify({'msg': 'Admin reserved area'}), 403
+
+        showings: Showing = Showing.query.all()
+
+        if showings is None:
+            return jsonify({'msg' : f'No results found'}), 404
+        
+        results = []
+        for sh in showings:
+            
+            event_data = {
+                "id": sh.id,
+                "title": sh.title,
+                "description": sh.description,
+                "price": sh.price
+            }
+
+            results.append(event_data)
+
+        return jsonify(results), 200
+
 @ticket_service_bp.route('/scheduling/<int:showId>', methods = ['POST']) 
 @jwt_required()
 def postScheduling(showId):

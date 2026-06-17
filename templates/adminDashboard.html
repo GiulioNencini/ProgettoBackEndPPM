@@ -37,6 +37,8 @@
             <button type="submit">Add scheduling</button>
         </form><br>
 
+        <form id = "get-show"><button type = "submit">View all schedulable showings</button></form><br>
+
         <button onclick="logout()">Logout</button>
         <p>____________________________</p>
         <p>OUTPUT MESSAGE:</p>
@@ -87,6 +89,42 @@
                 else{
                     window.location.href = "login.html";
                     return;
+                }
+            });
+
+
+            document.getElementById("get-show").addEventListener("submit", async (e) => {
+                e.preventDefault();
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/show-admin`, {
+                        method: 'GET',
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    });
+
+                    const data = await response.json();
+                    if (!response.ok) {
+                        msgDiv.textContent = data.msg;
+                        return;
+                    }
+
+                    msgDiv.innerHTML = "";
+                    data.forEach(res => {
+                        const c = document.createElement("div");
+
+                        c.innerHTML =
+                            `<p><strong>Reservation #</strong>${res.id}</p>
+                             <p><strong>Title: </strong> ${res.title}</p>
+                             <p><strong>Description: </strong> ${res.description}</p>
+                             <p><strong>Price: </strong> ${res.price}</p>
+                             <p>----------------------</p>`;
+
+                        msgDiv.appendChild(c);
+                    });
+
+                } catch (err) {
+                    msgDiv.textContent = "Network error";
                 }
             });
 

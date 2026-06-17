@@ -67,7 +67,7 @@
 
                 const data = await response.json();
                 if (!response.ok) {
-                    msgDiv.textContent = `Error: ${data.msg || data.error || "No more details"}`;
+                    msgDiv.textContent = `Error: ${data.msg || data.error || "Invalid input or the username is already used"}`;
                     msgDiv.style.color = "red";
                     form.password.value = "";
                 } else {
