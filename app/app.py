@@ -30,7 +30,7 @@ def method_not_allowed(e):
 
 @app.route('/')
 def hello_app():
-    return render_template("index.html", error="General Error")
+    return render_template("index.html")
 
 
 if __name__ == '__main__':
