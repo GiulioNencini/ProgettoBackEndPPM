@@ -1,9 +1,26 @@
 # Ticket Reservation API
 Il servizio fornito da questa app è la prenotazione di biglietti per un teatro. L'utente può prenotare, modificare la sua prenotazione o cancellarla. È sviluppato mediante Flask in linguaggio Python.
 ## Link di deploy
-HomePage: [progettobackendppm-production.up.railway.app](https://progettobackendppm-production.up.railway.app)
+API: [progettobackendppm-production.up.railway.app](https://progettobackendppm-production.up.railway.app)
 
-Oppure seguire le istruzioni per il setup locale per avviarlo mediante l'index.html
+Client: [client-progettobackendppm-production.up.railway.app](https://client-progettobackendppm-production-84cd.up.railway.app)
+
+# Setup locale dell'API
+Clonare il repository e installare le dipendenze. Le dipendenze sono elencate nel file `requirements.txt`.
+
+Assicurarsi di impostare in un file `.env` le seguenti variabili:
+
+  - `SECRET_KEY`: chiave usata per fare l'hash dei cookie.
+  - `JWT_SECRET_KEY`: chiave usata per fare l'hash dei token di autenticazione.
+  - `DATABASE_URL`: url del database. È presente un piccolo database pre-popolato nel progetto: per usarlo impostare la variabile `= sqlite:///instance/database.db`.
+  - `PORT`: porta sulla quale il server Flask deve mettersi in ascolto. Di default è stata impostata a `5050`.
+
+L'app può essere avviata da terminale con `python app.py`. Adesso il server sarà in esecuzione su localhost.
+
+# Setup locale del Client per l'avvio
+Nel file `api_base_url.js`, impostare la variabile `API_BASE_URL` all'URL dell'API. Con il database del repo usare: `http://localhost:<port>`
+
+Avviare manualmente il file `index.html`, si aprirà la home page del progetto. Da essa sarà possibile navigare nell'app, quindi accedere a tutti i servizi.
 
 # Struttura del progetto
 `/app`: cartella dell'API
@@ -17,23 +34,6 @@ Oppure seguire le istruzioni per il setup locale per avviarlo mediante l'index.h
  - `/adminDashboard.html`: pagina in cui l'admin può inserire nuovi show schedulabili e nuove schedulazioni per show esistenti nella tabella Showing.
  - `/userDashboard.html`: pagina per l'erogazione dei servizi al cliente. Il cliente può vedere tutti gli eventi futuri con tanto di posti rimanenti, creare, modificare o cancellare una prenotazione.
 
-# Setup locale dell'API
-Clonare il repository e installare le dipendenze. Le dipendenze sono elencate nel file `requirements.txt`.
-
-Impostare in un file `.env` le seguenti variabili:
-
-  - `SECRET_KEY`: chiave usata per fare l'hash dei cookie.
-  - `JWT_SECRET_KEY`: chiave usata per fare l'hash dei token di autenticazione.
-  - `DATABASE_URL`: url del database. È presente un piccolo database pre-popolato nel progetto: per usarlo impostare la variabile `= sqlite:///instance/database.db`.
-  - `PORT`: porta sulla quale il server Flask deve mettersi in ascolto. Di default è stata impostata a `5050`.
-
-L'app può essere avviata da terminale con `python app.py`. Adesso il server sarà in esecuzione su localhost.
-
-# Setup locale del Client
-Nel file `api_base_url.js`, impostare la variabile `API_BASE_URL` all'URL dell'API. Con il database del repo usare: `http://localhost:<port>`
-Avviare il file `index.html`, si aprirà la home page del progetto.
-
-Avviare l'app da terminale con `python app.py` oppure `flask run`. Adesso il server sarà in esecuzione su localhost.
 # Il Database
 
 ### User
@@ -64,6 +64,7 @@ showId |  Integer   | Id dello show schedulato (chiave esterna verso Showing.id)
 date  |  Date  | La data in cui si terrà  |
 time |  Time  | L'ora di inizio  |
 totalSeats | Integer | Il massimo numero di posti prenotabili |
+
 ### Reservation
 Rappresenta la prenotazione che viene creata dall'utente per un preciso scheduling. Sarà chiesto anche di inserire il numero di posto desiderato (Per semplicità il numero di posto è un semplice numero e non un numero di fila tipo 2A). 
 Colonna  |   Tipo    |  Descrizione  |
@@ -80,7 +81,7 @@ seatNumber |  Integer  | Il numero del posto prenotato  |
  - Le credenziali di ogni utente già registrato sono omonime. Es: `username: giulio` e `password: giulio`.
  - l'API risponde sempre in formato JSON
  - l'accesso ai servizi è regolato mediante il `JWT`. Periodicamente sarà richiesto di rieseguire il login, anche se non si è fatto il logout.
- - L'unico servizio accessibile `senza autenticazione` è la visualizzazione a schermo nella home page dei futuri spettacoli porogrammati.
+ - L'unico servizio accessibile `senza autenticazione` è la visualizzazione a schermo nella home page dei futuri spettacoli programmati.
 
 ## Autenticazione
 
